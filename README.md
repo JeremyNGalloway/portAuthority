@@ -1,8 +1,11 @@
 portAuthority
 =============
 Simple zmap automation in python.
+
 Call the python module and pass in a single argument containing a newline delimited set of networks in CIDR format.
+
 e.g. python portAuthority.py networks.txt
+
 where networks.txt looks like:
 192.168.0.1/24
 172.16.0.0/16
