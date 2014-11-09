@@ -1,7 +1,10 @@
 import subprocess
 import datetime
 import sys
+from netaddr import IPNetwork
 
+netcount = 0
+ipcount = 0
 date = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
 if len(sys.argv) < 2:
@@ -9,7 +12,7 @@ if len(sys.argv) < 2:
         print 'e.g. python portAuthority.py networks.txt'
 
 try:
-        zmapBin = subprocess.check_output(['which', 'zmap']).strip() + ' '
+        zmapBin = subprocess.check_output(['which', 'zmap']).strip()
         print 'zmap was found at:\n' + zmapBin
 except:
         print 'zmap was not found in your PATH, quitting'
@@ -19,13 +22,25 @@ port = raw_input('Enter port or port range to scan\ne.g. 1234 or 1234-1299\n:')
 
 with open(sys.argv[1], 'r') as networksFile:
                 for network in networksFile:
-                        netname = network[0:8]
-                        outFile = date + '.' + port + '.' + netname + '.zmap'
-                        print 'output file can be tailed with:\ntail -f '+ outFile
-                        zmapOptions = ' -p ' + port + ' -o ' + outFile + ' -B 1M -s 53 -v 4 '
-                        fullCommand = zmapBin + zmapOptions + network.strip()
-                        print fullCommand + ' RUNNING \n'
-                        subprocess.check_output(fullCommand, shell=True)
+                        netcount = netcount +1
+                        ip = IPNetwork(network)
+                        ipcount = ipcount + ip.size 
+
+print 'Total number of networks to be scanned: ' + str(netcount)
+print 'Total number of IPs to be scanned: ' + ("{:,}".format(ipcount));
+
+choice = raw_input('Would you like to continue? Y/N ').lower()
+if 'n' in choice:
+        exit()
+
+with open(sys.argv[1], 'r') as networksFile:
+        for network in networksFile:
+                netname = network[0:8].strip('.')
+                outFile = '{0}.{1}.{2}.zmap'.format(date, port, netname)
+                zmapOptions = ' -p {0} -o {1} -B 1M -s 53 -v 4 '.format(port, outFile)
+                fullCommand = zmapBin + zmapOptions + network.strip()
+                print fullCommand + ' RUNNING \n'
+                subprocess.check_output(fullCommand, shell=True)
 
 networksFile.close()
 print 'Scanning complete\n'
