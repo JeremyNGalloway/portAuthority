@@ -5,6 +5,7 @@ from netaddr import IPNetwork
 
 netcount = 0
 ipcount = 0
+errList = []
 date = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
 if len(sys.argv) < 2:
@@ -40,9 +41,16 @@ with open(sys.argv[1], 'r') as networksFile:
                 zmapOptions = ' -p {0} -o {1} -B 1M -s 53 -v 4 '.format(port, outFile)
                 fullCommand = zmapBin + zmapOptions + network.strip()
                 print fullCommand + ' RUNNING \n'
-                subprocess.check_output(fullCommand, shell=True)
+                try:
+                        subprocess.check_output(fullCommand, shell=True)
+                except subprocess.CalledProcessError as e:
+                        errList.extend(e.output)
+                        continue
 
 networksFile.close()
 print 'Scanning complete\n'
+print 'The following errors where caught:\n'
+for error in errList:
+        print error
 print 'find *.zmap | grep ' + port + ' | xargs cat | uniq -u | sort'
 exit()
