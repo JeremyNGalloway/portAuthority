@@ -19,7 +19,7 @@ except:
         print 'zmap was not found in your PATH, quitting'
         exit()
 
-port = raw_input('Enter port or port range to scan\ne.g. 1234 or 1234-1299\n:')
+port = raw_input('Enter port number to scan\ne.g. 1234\n:')
 
 with open(sys.argv[1], 'r') as networksFile:
                 for network in networksFile:
@@ -52,5 +52,5 @@ print 'Scanning complete\n'
 print 'The following errors where caught:\n'
 for error in errList:
         print error
-print 'find *.zmap | grep ' + port + ' | xargs cat | uniq -u | sort'
+print 'find *.zmap | grep ' + port + ' | xargs cat | sort | uniq'
 exit()
