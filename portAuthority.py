@@ -3,10 +3,10 @@ import datetime
 import logging
 import sys
 from netaddr import IPNetwork
+from time import sleep
 
 netcount = 0
 ipcount = 0
-errList = []
 date = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
 logging.basicConfig(filename='example.log',level=logging.DEBUG)
@@ -17,7 +17,7 @@ logging.warning('And this, too')
 if len(sys.argv) < 2:
         print 'Missing argument. Please provide a network list file, and optionally a port\n'
         print 'e.g. python portAuthority.py networks.txt 8088\n'
-        print 'nohup python portAuthorityMOD.py networks.txt 8088 > foo.out 2> foo.err < /dev/null &'
+        print 'nohup python portAuthority.py networks.txt 8088 > foo.out 2> foo.err < /dev/null &'
         exit()
 
 try:
@@ -50,22 +50,21 @@ with open(sys.argv[1], 'r') as networksFile:
         for network in networksFile:
                 netname = network[0:8].strip('.')
                 outFile = '{0}.{1}.{2}.zmap'.format(date, port, netname)
-                zmapOptions = ' -p {0} -o {1} -B 1M -s 53 -v 4 '.format(port, outFile)
+                zmapOptions = ' -p {0} -o {1} -B 1M -s 53 -v 2 '.format(port, outFile)
                 fullCommand = 'nohup ' + zmapBin + zmapOptions + network.strip()
                 print fullCommand + ' RUNNING \n'
                 try:
                         subprocess.check_output(fullCommand, shell=True)
+                        time.sleep(8)
                 except subprocess.CalledProcessError as e:
-                        errList.extend(e.output)
                         logging.warning(e.output)
                         continue
                 except Exception, e:
                         logging.warning(e.output)
 
 networksFile.close()
+
 print 'Scanning complete\n'
-print 'The following errors where caught:\n'
-for error in errList:
-        print error
-print 'find *.zmap | grep ' + port + ' | xargs cat | sort | uniq'
+print 'find *.zmap | grep ' + port + ' | xargs cat | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n | uniq'
+
 exit()
